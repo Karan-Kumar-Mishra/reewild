@@ -13,31 +13,54 @@ const options = {
     },
     servers: [
       {
-        url: "http://localhost:3000",
-        description: "Development server",
+        url: process.env.NODE_ENV === 'production' 
+          ? "https://reewild.onrender.com" 
+          : "http://localhost:3000",
+        description: process.env.NODE_ENV === 'production' 
+          ? "Production server" 
+          : "Development server",
       },
     ],
   },
-  // Try these different path patterns:
   apis: [
-    "./src/routers/*.ts",           // For development (TypeScript files)
-    "./dist/src/routers/*.js"                   // Broad search (be careful with this)
+    "./src/routers/*.ts",
+    "./dist/src/routers/*.js"
   ]
 };
+
 const swaggerSpec = swaggerJSDoc(options);
 
 export function setupSwagger(app: Express) {
-
   // Check if swaggerSpec has valid content
   if (!swaggerSpec || Object.keys(swaggerSpec).length === 0) {
     console.error("Swagger specification is empty or invalid");
     return;
   }
 
-  app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+  // Use CDN for Swagger UI assets to fix MIME type issues
+  const swaggerUiOptions = {
+    customCssUrl: 'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.9.0/swagger-ui.css',
+    customJs: [
+      'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.9.0/swagger-ui-bundle.js',
+      'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.9.0/swagger-ui-standalone-preset.js',
+    ],
+    customSiteTitle: "Foodprint Carbon API",
+   
+  };
+
+  app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec, swaggerUiOptions));
 
   // Also provide raw JSON spec
   app.get("/docs-json", (req, res) => {
     res.json(swaggerSpec);
+  });
+
+  // Prevent favicon 404 errors
+  app.get('/docs/favicon-32x32.png', (req, res) => {
+    res.status(204).end();
+  });
+
+  app.get('/docs/favicon-16x16.png', (req, res) => {
+    res.status(204).end();
   });
 }

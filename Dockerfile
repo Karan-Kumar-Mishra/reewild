@@ -6,27 +6,15 @@ WORKDIR /app
 
 # Copy package files and install dependencies
 COPY package*.json tsconfig.json ./
-RUN npm install
+RUN pnpm install
 
 # Copy source
 COPY src ./src
 
+EXPOSE 3000
 # Build TypeScript → dist
-RUN npm run build
+RUN pnpm run build
+
+RUN pnpm run start
 
 
-# ---------- Production stage ----------
-FROM node:20-slim AS runner
-
-WORKDIR /app
-
-# Copy only built code + node_modules (smaller image)
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/node_modules ./node_modules
-COPY package*.json ./
-
-# Expose port (match your config.PORT)
-EXPOSE 4000
-
-# Run the compiled server
-CMD ["node", "dist/server.js"]
