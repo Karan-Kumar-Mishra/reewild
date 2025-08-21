@@ -6,6 +6,7 @@ WORKDIR /app
 
 # Copy package files and install dependencies
 COPY package*.json tsconfig.json ./
+RUN npm install -g pnpm
 RUN pnpm install
 
 # Copy source
@@ -15,6 +16,5 @@ EXPOSE 3000
 # Build TypeScript → dist
 RUN pnpm run build
 
-RUN pnpm run start
-
+CMD [ "node","dist/server.js"]
 
